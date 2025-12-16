@@ -90,7 +90,7 @@ legend.onAdd = function () {
 
 legend.addTo(map);
 
-fetch('/data/canlines.geojson')
+fetch('data/canlines.geojson')
   .then(res => res.json())
   .then(data => {
 
@@ -130,7 +130,7 @@ const stationIcon = L.icon({
   popupAnchor: [0, -8]
 });
 
-fetch('/data/canpoints.geojson')
+fetch('data/canpoints.geojson')
   .then(res => res.json())
   .then(data => {
     L.geoJSON(data, {
@@ -151,7 +151,7 @@ fetch('/data/canpoints.geojson')
   })
   .catch(err => console.error('Failed to load stations:', err));
 
-fetch('/data/trains.csv')
+fetch('data/trains.csv')
   .then(res => res.text())
   .then(csvText => {
     Papa.parse(csvText, {
