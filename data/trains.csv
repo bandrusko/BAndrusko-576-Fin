@@ -1,0 +1,28 @@
+Company,LineName,Latitude,Longitude,StartDestination,FinalDestination,Category,Delayed
+VIA Rail,The Canadian (Toronto–Vancouver),53.5829,-113.4909,"Toronto, ON","Vancouver, BC",Long Distance,No
+VIA Rail,The Ocean (Montréal–Halifax),45.4963,-73.57,"Montréal, QC","Halifax, NS",Long Distance,No
+VIA Rail,Corridor (Toronto–Ottawa),44.2578,-76.4860,"Toronto, ON","Ottawa, ON",Corridor,No
+VIA Rail,Corridor (Toronto–Montréal),44.2032,-77.2500,"Toronto, ON","Montréal, QC",Corridor,No
+VIA Rail,Corridor (Windsor–Toronto),42.3245,-83.0060,"Windsor, ON","Toronto, ON",Corridor,No
+VIA Rail,Québec City–Montréal,46.8247,-71.2189,"Québec City, QC","Montréal, QC",Regional,No
+VIA Rail,Jasper–Prince Rupert,54.313,-130.320,"Jasper, AB","Prince Rupert, BC",Remote,No
+VIA Rail,Winnipeg–Churchill,58.7704,-94.164,"Winnipeg, MB","Churchill, MB",Remote,No
+VIA Rail,Senneterre–Montréal,48.7403,-78.9167,"Senneterre, QC","Montréal, QC",Remote,No
+VIA Rail,Jonquière–Montréal,48.4167,-71.2867,"Jonquière, QC","Montréal, QC",Remote,No
+GO Transit,Lakeshore East,43.8862,-78.8658,"Oshawa, ON","Toronto, ON",Commuter,No
+GO Transit,Lakeshore West,43.2561,-79.8832,"Hamilton, ON","Toronto, ON",Commuter,No
+GO Transit,Kitchener Line,43.4603,-80.4866,"Kitchener, ON","Toronto, ON",Commuter,No
+GO Transit,Barrie Line,44.3731,-79.6903,"Barrie, ON","Toronto, ON",Commuter,No
+GO Transit,Milton Line,43.5213,-79.8794,"Milton, ON","Toronto, ON",Commuter,No
+GO Transit,Stouffville Line,43.9668,-79.2500,"Stouffville, ON","Toronto, ON",Commuter,No
+GO Transit,Richmond Hill Line,43.8828,-79.4321,"Richmond Hill, ON","Toronto, ON",Commuter,No
+Exo Montréal,Exo1 Vaudreuil–Hudson,45.3895,-74.0167,"Vaudreuil, QC","Montréal, QC",Commuter,No
+Exo Montréal,Exo2 Saint-Jérôme,45.7728,-73.9976,"Saint-Jérôme, QC","Montréal, QC",Commuter,No
+Exo Montréal,Exo3 Mont-Saint-Hilaire,45.5600,-73.1912,"Mont-Saint-Hilaire, QC","Montréal, QC",Commuter,No
+Exo Montréal,Exo4 Candiac,45.3826,-73.5167,"Candiac, QC","Montréal, QC",Commuter,No
+Exo Montréal,Exo5 Mascouche,45.7296,-73.596,"Mascouche, QC","Montréal, QC",Commuter,No
+Rocky Mountaineer,First Passage to the West,51.1854,-115.568,"Vancouver, BC","Banff, AB",Tourist,No
+Rocky Mountaineer,Journey Through the Clouds,52.8734,-118.097,"Vancouver, BC","Jasper, AB",Tourist,No
+Rocky Mountaineer,Rainforest to Gold Rush,53.92,-122.7450,"Vancouver, BC","Prince George, BC",Tourist,No
+Agawa Canyon Tour Train,Agawa Canyon Line,46.5353,-84.3463,"Sault Ste. Marie, ON","Agawa Canyon, ON",Tourist,No
+Ontario Northland,Polar Bear Express,49.6113,-83.2667,"Cochrane, ON","Moosonee, ON",Remote,No

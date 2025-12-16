@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Train Tracker</title>
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <!-- Geocoder CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+
+    <style>
+        html,
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+        }
+
+        #map {
+            height: 100vh;
+            width: 100%;
+        }
+
+        .legend-station-symbol {
+            position: relative;
+            width: 26px;
+            height: 16px;
+        }
+
+        .legend-station-symbol .rail {
+            position: absolute;
+            top: 7px;
+            left: 0;
+            width: 26px;
+            height: 3px;
+            background: #444;
+            border-radius: 2px;
+        }
+
+        .legend-station-symbol .dot {
+            position: absolute;
+            left: 9px;
+            top: 4px;
+            width: 8px;
+            height: 8px;
+            background: #1e90ff;
+            border-radius: 50%;
+            border: 1px solid white;
+        }
+
+        .legend-station-symbol img {
+            position: absolute;
+            left: 5px;
+            top: -2px;
+            width: 14px;
+            height: 14px;
+        }
+
+        .legend {
+            line-height: 1.4;
+            font-family: Arial, sans-serif;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="map"></div>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <!-- Geocoder -->
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+
+    <!-- PapaParse for CSV -->
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+
+    <!-- Your app -->
+    <script src="/app.js"></script>
+</body>
+
+</html>

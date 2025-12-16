@@ -1,0 +1,212 @@
+//Stores train markers so we can animate (blip) them later
+const trainMarkers = [];
+
+const map = L.map('map', {
+  center: [52, -98], //Canada-centered view
+  zoom: 5,
+  zoomControl: true
+});
+
+map.createPane('railsPane');
+map.createPane('stationsPane');
+map.createPane('trainsPane');
+
+map.getPane('railsPane').style.zIndex = 400;
+map.getPane('stationsPane').style.zIndex = 500;
+map.getPane('trainsPane').style.zIndex = 600;
+
+L.tileLayer(
+  'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
+  {
+    attribution: '&copy; OpenStreetMap contributors',
+    maxZoom: 19
+  }
+).addTo(map);
+
+const railLinesLayer = L.layerGroup().addTo(map);
+const stationsLayer  = L.layerGroup().addTo(map);
+const trainsLayer    = L.layerGroup().addTo(map);
+
+L.Control.geocoder({
+  defaultMarkGeocode: true
+}).addTo(map);
+
+const locateControl = L.control({ position: 'topleft' });
+
+locateControl.onAdd = function () {
+  const div = L.DomUtil.create('div', 'leaflet-bar leaflet-control');
+  div.innerHTML = '📍';
+  div.style.background = 'white';
+  div.style.width = '34px';
+  div.style.height = '34px';
+  div.style.lineHeight = '34px';
+  div.style.textAlign = 'center';
+  div.style.cursor = 'pointer';
+  div.title = 'Locate Me';
+
+  L.DomEvent.disableClickPropagation(div);
+
+  div.onclick = () => map.locate({ setView: true, maxZoom: 12 });
+
+  return div;
+};
+
+locateControl.addTo(map);
+
+const legend = L.control({ position: 'bottomleft' });
+
+legend.onAdd = function () {
+  const div = L.DomUtil.create('div', 'legend');
+
+  div.style.background = 'white';
+  div.style.border = '2px solid black';
+  div.style.borderRadius = '6px';
+  div.style.padding = '10px';
+  div.style.fontSize = '14px';
+
+  div.innerHTML = `
+    <strong>Legend</strong><br><br>
+
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div style="width:30px;height:3px;background:black;"></div>
+      <span>Rail Line</span>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+      <img src="https://cdn-icons-png.flaticon.com/512/3448/3448339.png"
+           style="width:16px;height:16px;">
+      <span>Station</span>
+    </div>
+
+    <div style="display:flex;align-items:center;gap:8px;margin-top:8px;">
+      <div style="width:12px;height:12px;background:#1e90ff;
+                  border-radius:50%;border:1px solid white;"></div>
+      <span>Train</span>
+    </div>
+  `;
+
+  return div;
+};
+
+legend.addTo(map);
+
+fetch('/data/canlines.geojson')
+  .then(res => res.json())
+  .then(data => {
+
+    //White halo 
+    L.geoJSON(data, {
+      pane: 'railsPane',
+      style: {
+        color: '#ffffff',
+        weight: 4,
+        opacity: 0.9
+      }
+    }).addTo(railLinesLayer);
+
+    //Actual rail line
+    L.geoJSON(data, {
+      pane: 'railsPane',
+      style: {
+        color: '#222',
+        weight: 2,
+        opacity: 0.95
+      },
+      onEachFeature: (feature, layer) => {
+        const owner = feature.properties.opnam_en || 'Unknown operator';
+        layer.bindPopup(`<b>Railway</b><br>Operator: ${owner}`);
+      }
+    }).addTo(railLinesLayer);
+
+    //Fit map once on load
+    map.fitBounds(railLinesLayer.getBounds());
+  })
+  .catch(err => console.error('Failed to load rail lines:', err));
+
+const stationIcon = L.icon({
+  iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448339.png',
+  iconSize: [16, 16],
+  iconAnchor: [8, 8],
+  popupAnchor: [0, -8]
+});
+
+fetch('/data/canpoints.geojson')
+  .then(res => res.json())
+  .then(data => {
+    L.geoJSON(data, {
+      pane: 'stationsPane',
+      pointToLayer: (feature, latlng) =>
+        L.marker(latlng, {
+          icon: stationIcon,
+          pane: 'stationsPane'
+        }),
+      onEachFeature: (feature, layer) => {
+        const name =
+          feature.properties.name ||
+          feature.properties.station_name ||
+          'Station';
+        layer.bindPopup(`<b>${name}</b>`);
+      }
+    }).addTo(stationsLayer);
+  })
+  .catch(err => console.error('Failed to load stations:', err));
+
+fetch('/data/trains.csv')
+  .then(res => res.text())
+  .then(csvText => {
+    Papa.parse(csvText, {
+      header: true,
+      skipEmptyLines: true,
+      complete: function (results) {
+
+        results.data.forEach(train => {
+          const lat = parseFloat(train.Latitude);
+          const lon = parseFloat(train.Longitude);
+          if (isNaN(lat) || isNaN(lon)) return;
+
+          const marker = L.circleMarker([lat, lon], {
+            pane: 'trainsPane',
+            radius: 5,
+            fillColor: '#1e90ff',
+            color: '#ffffff',
+            weight: 1,
+            fillOpacity: 0.9
+          })
+          .addTo(trainsLayer)
+          .bindPopup(`
+            <b>${train.LineName}</b><br>
+            Company: ${train.Company}<br>
+            Delayed: ${train.Delayed}
+          `);
+
+          trainMarkers.push(marker);
+        });
+
+        startTrainBlips(); //Start animation AFTER markers exist
+      }
+    });
+  })
+  .catch(err => console.error('Failed to load trains.csv:', err));
+
+function startTrainBlips() {
+  let growing = true;
+
+  setInterval(() => {
+    trainMarkers.forEach(marker => {
+      if (growing) {
+        marker.setRadius(8);
+        marker.setStyle({ fillOpacity: 0.6 });
+      } else {
+        marker.setRadius(5);
+        marker.setStyle({ fillOpacity: 0.9 });
+      }
+    });
+    growing = !growing;
+  }, 900);
+}
+
+L.control.layers(null, {
+  'Rail Lines': railLinesLayer,
+  'Stations': stationsLayer,
+  'Trains': trainsLayer
+}).addTo(map);
