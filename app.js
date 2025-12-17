@@ -1,12 +1,19 @@
-//Stores train markers so we can animate (blip) them later
+//Stores train markers.
+
 const trainMarkers = [];
 
+//Groups station stop_ids by shared coordinates.
+const stationGroups = {};
+
+//Initializes the map.
+
 const map = L.map('map', {
-  center: [52, -98], //Canada-centered view
+  center: [52, -98], //Canada-centered view.
   zoom: 5,
   zoomControl: true
 });
 
+//Separate panes to control layer stacking order.
 map.createPane('railsPane');
 map.createPane('stationsPane');
 map.createPane('trainsPane');
@@ -14,6 +21,8 @@ map.createPane('trainsPane');
 map.getPane('railsPane').style.zIndex = 400;
 map.getPane('stationsPane').style.zIndex = 500;
 map.getPane('trainsPane').style.zIndex = 600;
+
+//Loads base map tiles.
 
 L.tileLayer(
   'https://{s}.tile.openstreetmap.fr/hot/{z}/{x}/{y}.png',
@@ -23,13 +32,19 @@ L.tileLayer(
   }
 ).addTo(map);
 
+//Organizes layers into groups.
+
 const railLinesLayer = L.layerGroup().addTo(map);
 const stationsLayer  = L.layerGroup().addTo(map);
 const trainsLayer    = L.layerGroup().addTo(map);
 
+//Geocoder search.
+
 L.Control.geocoder({
   defaultMarkGeocode: true
 }).addTo(map);
+
+//Current location tool.
 
 const locateControl = L.control({ position: 'topleft' });
 
@@ -52,6 +67,8 @@ locateControl.onAdd = function () {
 };
 
 locateControl.addTo(map);
+
+//Legend for map.
 
 const legend = L.control({ position: 'bottomleft' });
 
@@ -90,11 +107,11 @@ legend.onAdd = function () {
 
 legend.addTo(map);
 
+//Loads rail lines from GeoJSON file.
 fetch('data/canlines.geojson')
   .then(res => res.json())
   .then(data => {
 
-    //White halo 
     L.geoJSON(data, {
       pane: 'railsPane',
       style: {
@@ -104,7 +121,6 @@ fetch('data/canlines.geojson')
       }
     }).addTo(railLinesLayer);
 
-    //Actual rail line
     L.geoJSON(data, {
       pane: 'railsPane',
       style: {
@@ -118,10 +134,12 @@ fetch('data/canlines.geojson')
       }
     }).addTo(railLinesLayer);
 
-    //Fit map once on load
+    //Fitted on map once loaded.
     map.fitBounds(railLinesLayer.getBounds());
   })
   .catch(err => console.error('Failed to load rail lines:', err));
+
+//Loads station icon.
 
 const stationIcon = L.icon({
   iconUrl: 'https://cdn-icons-png.flaticon.com/512/3448/3448339.png',
@@ -130,26 +148,51 @@ const stationIcon = L.icon({
   popupAnchor: [0, -8]
 });
 
+//Loads stations from GeoJSON file.
+
 fetch('data/canpoints.geojson')
   .then(res => res.json())
   .then(data => {
+
     L.geoJSON(data, {
       pane: 'stationsPane',
+
       pointToLayer: (feature, latlng) =>
         L.marker(latlng, {
           icon: stationIcon,
           pane: 'stationsPane'
         }),
+
       onEachFeature: (feature, layer) => {
-        const name =
-          feature.properties.name ||
-          feature.properties.station_name ||
-          'Station';
-        layer.bindPopup(`<b>${name}</b>`);
+        const [lon, lat] = feature.geometry.coordinates;
+        const key = `${lat.toFixed(6)},${lon.toFixed(6)}`;
+
+        //Create group if it doesn't exist.
+        if (!stationGroups[key]) {
+          stationGroups[key] = [];
+        }
+
+        //Add stop_id to this coordinate group.
+        stationGroups[key].push(feature.properties.stop_id);
+
+        //Build popup once clicked.
+        const stopsHtml = stationGroups[key]
+          .map(id => `<li>Station ID: ${id}</li>`)
+          .join('');
+
+        layer.bindPopup(`
+          <b>Station Stops</b><br>
+          <ul style="margin:4px 0;padding-left:18px;">
+            ${stopsHtml}
+          </ul>
+        `);
       }
     }).addTo(stationsLayer);
+
   })
   .catch(err => console.error('Failed to load stations:', err));
+
+//Loads the trains csv file.
 
 fetch('data/trainsfin.csv')
   .then(res => res.text())
@@ -164,6 +207,15 @@ fetch('data/trainsfin.csv')
           const lon = parseFloat(train.Longitude);
           if (isNaN(lat) || isNaN(lon)) return;
 
+          //Read the speed of the trains.
+          const speedKey = Object.keys(train).find(
+            k => k.trim().toLowerCase() === 'speedkph'
+          );
+
+          const speed = speedKey && train[speedKey]
+            ? `${train[speedKey]} km/h`
+            : 'Unknown';
+
           const marker = L.circleMarker([lat, lon], {
             pane: 'trainsPane',
             radius: 5,
@@ -176,18 +228,20 @@ fetch('data/trainsfin.csv')
           .bindPopup(`
             <b>${train.LineName}</b><br>
             Company: ${train.Company}<br>
-            Speed: ${train.SpeedKPH} KPH<br>
+            Speed: ${speed}<br>
             Delayed: ${train.Delayed}
           `);
 
           trainMarkers.push(marker);
         });
 
-        startTrainBlips(); //Start animation AFTER markers exist
+        startTrainBlips(); //Starts blinking animation.
       }
     });
   })
-  .catch(err => console.error('Failed to load trains.csv:', err));
+  .catch(err => console.error('Failed to load trainsfin.csv:', err));
+
+//Train blinking animation.
 
 function startTrainBlips() {
   let growing = true;
@@ -205,6 +259,8 @@ function startTrainBlips() {
     growing = !growing;
   }, 900);
 }
+
+//Layer toggles.
 
 L.control.layers(null, {
   'Rail Lines': railLinesLayer,
